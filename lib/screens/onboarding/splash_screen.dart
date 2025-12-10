@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase_service.dart';
+import '../../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'profile_setup_screen.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -78,8 +80,8 @@ class _SplashScreenState extends State<SplashScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primaryContainer,
+              AppTheme.primaryBlue,
+              AppTheme.primaryOrange,
             ],
           ),
         ),
@@ -87,49 +89,69 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo placeholder - replace with actual logo asset
+              // Logo - Fill the white container completely
               Container(
-                width: 120,
-                height: 120,
+                width: 160,
+                height: 160,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 30,
+                      offset: const Offset(0, 15),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.description,
-                  size: 64,
-                  color: Color(0xFF1976D2),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: Image.asset(
+                    'assets/XeroFlow.png',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.description,
+                        size: 120,
+                        color: AppTheme.primaryBlue,
+                      );
+                    },
+                  ),
                 ),
               ),
-              const SizedBox(height: 32),
-              const Text(
+              const SizedBox(height: 50),
+              Text(
                 'XeroFlow',
-                style: TextStyle(
-                  fontSize: 36,
+                style: GoogleFonts.poppins(
+                  fontSize: 44,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 1.2,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 3),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: 18),
+              Text(
                 'Streamline your Xerox experience',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 18,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 60),
               const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
               ),
             ],
           ),

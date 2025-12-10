@@ -58,6 +58,9 @@ dependencies:
   
   # Navigation
   go_router: ^13.2.2
+  
+  # Google Fonts for Poppins
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -82,9 +85,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/XeroFlow.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

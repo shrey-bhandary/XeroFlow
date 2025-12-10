@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import 'profile_setup_screen.dart';
@@ -172,21 +173,54 @@ class _OTPScreenState extends State<OTPScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 48),
-              const Text(
+              const SizedBox(height: 20),
+              // Header icon - Centered
+              Center(
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppTheme.primaryBlue,
+                        AppTheme.primaryOrange,
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryBlue.withOpacity(0.4),
+                        blurRadius: 25,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.lock_outline,
+                    size: 45,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
                 'Enter OTP',
-                style: TextStyle(
-                  fontSize: 28,
+                style: GoogleFonts.poppins(
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 'We sent a 6-digit code to\n${widget.email}',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
+                  fontWeight: FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -205,7 +239,7 @@ class _OTPScreenState extends State<OTPScreen> {
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(1),
                       ],
-                      style: const TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -234,7 +268,10 @@ class _OTPScreenState extends State<OTPScreen> {
                 children: [
                   Text(
                     "Didn't receive the code? ",
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
                   ),
                   TextButton(
                     onPressed: _canResend ? _resendOTP : null,
@@ -242,10 +279,12 @@ class _OTPScreenState extends State<OTPScreen> {
                       _canResend
                           ? 'Resend'
                           : 'Resend in ${_resendTimer}s',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: _canResend
                             ? Theme.of(context).colorScheme.primary
                             : Colors.grey,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
                     ),
                   ),
