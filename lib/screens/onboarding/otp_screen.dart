@@ -210,7 +210,7 @@ class _OTPScreenState extends State<OTPScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -219,7 +219,7 @@ class _OTPScreenState extends State<OTPScreen> {
                 'We sent a 6-digit code to\n${widget.email}',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   fontWeight: FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
@@ -228,12 +228,15 @@ class _OTPScreenState extends State<OTPScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 50,
+                  return Container(
+                    width: 52,
+                    height: 60,
+                    alignment: Alignment.center,
                     child: TextField(
                       controller: _controllers[index],
                       focusNode: _focusNodes[index],
                       textAlign: TextAlign.center,
+                      textAlignVertical: TextAlignVertical.center,
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
@@ -242,12 +245,29 @@ class _OTPScreenState extends State<OTPScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        height: 1.0,
                       ),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: const EdgeInsets.all(16),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                        filled: true,
+                        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                       ),
                       onChanged: (value) => _onOTPChanged(index, value),
                     ),

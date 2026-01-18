@@ -103,9 +103,33 @@ if [ "$DEVICES" -eq 0 ]; then
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         exit 1
     fi
-else
     echo -e "${GREEN}✓ Device(s) found${NC}"
     flutter devices
+fi
+
+# Check if an iOS simulator is actually booted (Flutter sometimes sees them but they aren't ready for Xcode)
+echo "Checking for booted iOS simulators..."
+BOOTED_SIMULATOR=$(xcrun simctl list devices | grep "Booted" | head -n 1)
+
+if [ -z "$BOOTED_SIMULATOR" ]; then
+    echo "No booted iOS simulator found. Launching one..."
+    flutter emulators --launch apple_ios_simulator
+    
+    # Wait for it to boot
+    echo "Waiting for simulator to boot..."
+    sleep 15
+else
+    echo "Found booted simulator: $BOOTED_SIMULATOR"
+fi
+
+# Get the device ID to target explicitly
+DEVICE_ID=$(flutter devices | grep "ios" | grep "simulator" | awk -F• '{print $2}' | xargs)
+if [ -z "$DEVICE_ID" ]; then
+    # Fallback to just running, hoping flutter picks the right one
+    TARGET_FLAG=""
+else
+    echo "Targeting device: $DEVICE_ID"
+    TARGET_FLAG="-d $DEVICE_ID"
 fi
 
 # Run the app
@@ -118,12 +142,11 @@ echo ""
 # Check for command line arguments
 if [ "$1" == "--release" ]; then
     echo "Running in RELEASE mode..."
-    flutter run --release
+    flutter run --release $TARGET_FLAG
 elif [ "$1" == "--profile" ]; then
     echo "Running in PROFILE mode..."
-    flutter run --profile
+    flutter run --profile $TARGET_FLAG
 else
     echo "Running in DEBUG mode..."
-    flutter run
+    flutter run $TARGET_FLAG
 fi
-

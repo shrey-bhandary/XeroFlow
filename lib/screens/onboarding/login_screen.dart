@@ -207,6 +207,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: 'Email Address',
                           hintText: 'yourname@xaviers.edu.in',
                           prefixIcon: const Icon(Icons.email),
+                          labelStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          floatingLabelStyle: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {

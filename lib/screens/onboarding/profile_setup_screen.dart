@@ -18,34 +18,60 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _rollNumberController = TextEditingController();
+  final _uidController = TextEditingController();
+  String? _selectedProgram;
   String? _selectedDept;
   String? _selectedYear;
   bool _isLoading = false;
 
-  final List<String> _departments = [
-    'Computer Science',
-    'Electronics',
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Commerce',
-    'Arts',
-    'Economics',
-    'Other',
+  final List<String> _programTypes = [
+    'Under Graduate Programs (UG)',
+    'Post Graduate Programs (PG)',
   ];
 
-  final List<String> _years = [
-    '1st Year',
-    '2nd Year',
-    '3rd Year',
-    '4th Year',
-  ];
+  final Map<String, List<String>> _departments = {
+    'Under Graduate Programs (UG)': [
+      'Bachelor of Arts (B.A.)',
+      'Bachelor of Arts in Mass Communication & Journalism (B.A.‑MCJ)',
+      'Bachelor of Science (B.Sc.)',
+      'Bachelor of Science in Information Technology (B.Sc. IT)',
+      'Bachelor of Science in Data Science & Artificial Intelligence (B.Sc. DSAI)',
+      'Bachelor of Science in Biotechnology & Computational Biology (B.Sc. BCB)',
+      'Bachelor of Commerce (B.Com.)',
+      'Bachelor of Commerce in Management Studies (B.Com. MS)',
+      'Bachelor of Commerce in Accounting and Finance (B.A.F.)',
+    ],
+    'Post Graduate Programs (PG)': [
+      'M.A. in Ancient Indian History, Culture & Archaeology',
+      'M.A. in Public Policy',
+      'M.A. in Psychology (Lifespan Counselling)',
+      'M.Sc. in Botany',
+      'M.Sc. in Geology',
+      'M.Sc. in Life Sciences',
+      'M.Sc. in Microbiology',
+      'M.Sc. in Big Data Analytics',
+      'M.Sc. in Biotechnology',
+      'M.Sc. in Physics (Astrophysics)',
+    ],
+  };
+
+  final Map<String, List<String>> _yearOptions = {
+    'Under Graduate Programs (UG)': [
+      'First Year',
+      'Second Year',
+      'Third Year',
+    ],
+    'Post Graduate Programs (PG)': [
+      'First Year',
+      'Second Year',
+    ],
+  };
 
   @override
   void dispose() {
     _nameController.dispose();
     _rollNumberController.dispose();
+    _uidController.dispose();
     super.dispose();
   }
 
@@ -54,10 +80,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    if (_selectedDept == null || _selectedYear == null) {
+    if (_selectedProgram == null ||
+        _selectedDept == null ||
+        _selectedYear == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select Department and Year'),
+          content: Text('Please select Program, Department and Year'),
           backgroundColor: Colors.red,
         ),
       );
@@ -79,6 +107,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         email: widget.email,
         name: _nameController.text.trim(),
         rollNumber: _rollNumberController.text.trim(),
+        uid: _uidController.text.trim(),
         dept: _selectedDept!,
         year: _selectedYear!,
       );
@@ -126,7 +155,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               // Header section
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -228,56 +258,118 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      DropdownButtonFormField<String>(
-                        value: _selectedDept,
+                      TextFormField(
+                        controller: _uidController,
                         decoration: const InputDecoration(
-                          labelText: 'Department',
-                          prefixIcon: Icon(Icons.school),
+                          labelText: 'UID',
+                          hintText: 'Enter your UID',
+                          prefixIcon: Icon(Icons.fingerprint),
                         ),
-                        items: _departments.map((dept) {
-                          return DropdownMenuItem(
-                            value: dept,
-                            child: Text(dept),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDept = value;
-                          });
-                          HapticUtils.selectionClick();
-                        },
                         validator: (value) {
-                          if (value == null) {
-                            return 'Please select your department';
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your UID';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
                       DropdownButtonFormField<String>(
-                        value: _selectedYear,
+                        value: _selectedProgram,
+                        isExpanded: true,
                         decoration: const InputDecoration(
-                          labelText: 'Year',
-                          prefixIcon: Icon(Icons.calendar_today),
+                          labelText: 'Program Type',
+                          prefixIcon: Icon(Icons.school_outlined),
                         ),
-                        items: _years.map((year) {
+                        items: _programTypes.map((type) {
                           return DropdownMenuItem(
-                            value: year,
-                            child: Text(year),
+                            value: type,
+                            child:
+                                Text(type, overflow: TextOverflow.ellipsis),
                           );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedYear = value;
+                            _selectedProgram = value;
+                            _selectedDept = null;
+                            _selectedYear = null;
                           });
                           HapticUtils.selectionClick();
                         },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select your program type';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        value: _selectedDept,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Department',
+                          prefixIcon: Icon(Icons.school),
+                        ),
+                        items: _selectedProgram == null
+                            ? []
+                            : _departments[_selectedProgram]!.map((dept) {
+                                return DropdownMenuItem(
+                                  value: dept,
+                                  child: Text(dept,
+                                      overflow: TextOverflow.ellipsis),
+                                );
+                              }).toList(),
+                        onChanged: _selectedProgram == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedDept = value;
+                                });
+                                HapticUtils.selectionClick();
+                              },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Please select your department';
+                          }
+                          return null;
+                        },
+                        hint: Text(_selectedProgram == null
+                            ? 'Select Program Type first'
+                            : 'Select Department'),
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        value: _selectedYear,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Year',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        items: _selectedProgram == null
+                            ? []
+                            : _yearOptions[_selectedProgram]!.map((year) {
+                                return DropdownMenuItem(
+                                  value: year,
+                                  child: Text(year),
+                                );
+                              }).toList(),
+                        onChanged: _selectedProgram == null
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  _selectedYear = value;
+                                });
+                                HapticUtils.selectionClick();
+                              },
                         validator: (value) {
                           if (value == null) {
                             return 'Please select your year';
                           }
                           return null;
                         },
+                        hint: Text(_selectedProgram == null
+                            ? 'Select Program Type first'
+                            : 'Select Year'),
                       ),
                       const SizedBox(height: 32),
                       ElevatedButton(
@@ -286,7 +378,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
                               )
                             : const Text('SAVE PROFILE'),
                       ),
