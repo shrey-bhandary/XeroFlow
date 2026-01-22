@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import 'profile_setup_screen.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../home/home_screen.dart';
 
 class OTPScreen extends StatefulWidget {
   final String email;
@@ -100,7 +100,7 @@ class _OTPScreenState extends State<OTPScreen> {
         if (mounted) {
           if (hasProfile) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
             );
           } else {
             Navigator.of(context).pushReplacement(

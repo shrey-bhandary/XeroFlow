@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase_service.dart';
 import '../../models/student.dart';
 import '../../theme/app_theme.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../home/home_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final String email;
@@ -123,7 +123,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         );
 
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
     } catch (e) {

@@ -4,7 +4,7 @@ import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import 'login_screen.dart';
 import 'profile_setup_screen.dart';
-import '../dashboard/dashboard_screen.dart';
+import '../home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -48,7 +48,7 @@ class _SplashScreenState extends State<SplashScreen> {
         // Navigate to dashboard
         if (mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
         }
       } else {
