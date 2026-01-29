@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../dashboard/dashboard_screen.dart';
+import '../upload/upload_screen.dart';
 import '../orders/orders_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const DashboardScreen(),
+    const UploadScreen(),
     const OrdersScreen(),
     const ProfileScreen(),
   ];
@@ -71,8 +73,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               NavigationDestination(
                 icon: Icon(
-                  Icons.receipt_long_outlined,
+                  Icons.cloud_upload_outlined,
                   color: _currentIndex == 1 
+                      ? AppTheme.primaryOrange 
+                      : (isDark ? Colors.grey[400] : Colors.grey[600]),
+                ),
+                selectedIcon: const Icon(
+                  Icons.cloud_upload_rounded,
+                  color: AppTheme.primaryOrange,
+                ),
+                label: 'Upload',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.receipt_long_outlined,
+                  color: _currentIndex == 2 
                       ? AppTheme.primaryBlue 
                       : (isDark ? Colors.grey[400] : Colors.grey[600]),
                 ),
@@ -85,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
               NavigationDestination(
                 icon: Icon(
                   Icons.person_outline_rounded,
-                  color: _currentIndex == 2 
+                  color: _currentIndex == 3 
                       ? AppTheme.primaryBlue 
                       : (isDark ? Colors.grey[400] : Colors.grey[600]),
                 ),
