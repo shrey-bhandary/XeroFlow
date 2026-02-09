@@ -19,8 +19,18 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // Initialize orders from Supabase
+    _initializeOrders();
     // Listen to order changes
     _orderService.addListener(_onOrdersChanged);
+  }
+
+  Future<void> _initializeOrders() async {
+    setState(() => _isLoading = true);
+    await _orderService.initialize();
+    // Subscribe to realtime updates
+    _orderService.subscribeToOrderUpdates();
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -38,7 +48,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   Future<void> _refreshOrders() async {
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
+    await _orderService.refreshOrders();
     setState(() => _isLoading = false);
   }
 

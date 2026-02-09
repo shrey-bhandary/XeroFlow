@@ -72,23 +72,45 @@ class _UploadScreenState extends State<UploadScreen> {
     HapticUtils.heavyImpact();
     setState(() => _isUploading = true);
 
-    // Simulate upload delay
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Add the order to the OrderService (now saves to Supabase)
+      final order = await OrderService().addOrder(
+        fileNames: _selectedFiles.map((f) => f.name).toList(),
+        copies: _copies,
+        isColor: _isColorPrint,
+        isDoubleSided: _isDoubleSided,
+        paperSize: _paperSize,
+        totalAmount: _calculateEstimate(),
+      );
 
-    // Add the order to the OrderService
-    final order = OrderService().addOrder(
-      fileNames: _selectedFiles.map((f) => f.name).toList(),
-      copies: _copies,
-      isColor: _isColorPrint,
-      isDoubleSided: _isDoubleSided,
-      paperSize: _paperSize,
-      totalAmount: _calculateEstimate(),
-    );
+      setState(() => _isUploading = false);
 
-    setState(() => _isUploading = false);
-
-    if (mounted) {
-      _showOrderConfirmationDialog(order.orderNumber);
+      if (mounted && order != null) {
+        _showOrderConfirmationDialog(order.orderNumber);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to submit order. Please try again.',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isUploading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: $e',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
