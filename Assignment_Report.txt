@@ -1,0 +1,250 @@
+Description : 
+XeroFlow is a comprehensive print management system designed to streamline the printing process for students and administrators. It consists of a mobile application for students to upload and track print orders, and a web-based admin panel for shop operators to manage print queues and status. The system leverages Supabase for real-time data synchronization and secure authentication.
+
+List Of Modules : 
+1. Onboarding (Login, OTP, Profile Setup)
+2. Upload Files
+3. Orders
+4. Profile Screen
+5. Admin Portal
+
+Names of Group Members : 
+[Enter Name 1]
+[Enter Name 2]
+[Enter Name 3]
+
+Plagiarism Report : 
+
+Module 1 : Onboarding (Login, OTP, Profile Setup)
+Code :
+```dart
+class LoginScreen extends StatefulWidget {
+  // ...
+  Future<void> _sendOTP() async {
+    if (!_formKey.currentState!.validate()) return;
+    try {
+      final email = _emailController.text.trim().toLowerCase();
+      // Only allow institutional emails
+      if (!email.endsWith('@xaviers.edu.in')) throw Exception('Invalid Domain');
+      
+      await SupabaseService().sendOTP(email);
+      Navigator.push(context, MaterialPageRoute(builder: (_) => OTPScreen(email: email)));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // Institutional Branding
+          Image.asset('assets/XeroFlow.png'),
+          Text('Welcome to XeroFlow', style: GoogleFonts.poppins(fontSize: 30)),
+          // Email Input Form
+          TextFormField(
+            controller: _emailController,
+            validator: (value) => _isValidXaviersEmail(value) ? null : 'Use college email',
+          ),
+          ElevatedButton(onPressed: _sendOTP, child: Text('SEND OTP')),
+        ],
+      ),
+    );
+  }
+}
+```
+Explanation :
+The onboarding module ensures secure access to the platform. It restricts registration to users with a valid `@xaviers.edu.in` email address. The flow involves entering an email, receiving a One-Time Password (OTP) via Supabase Auth, and verifying it. Upon first login, users complete a profile setup to store their roll number and department details.
+
+Output :
+A clean login interface prompting for a college email. On submission, the user receives an OTP. New users are then guided to a "Setup Profile" screen to enter their academic details.
+
+Module 2 : Upload Files
+Code :
+```dart
+class UploadScreen extends StatefulWidget {
+  // ...
+  Future<void> _uploadAndSubmitOrder() async {
+    if (_selectedFiles.isEmpty) return;
+
+    try {
+      // 1. Upload files to Supabase Storage
+      final fileUrls = <String>[];
+      for (final file in _selectedFiles) {
+        final filePath = '${userId}/${timestamp}_${file.name}';
+        await supabase.storage.from('print-files').uploadBinary(filePath, file.bytes!);
+        fileUrls.add(supabase.storage.from('print-files').getPublicUrl(filePath));
+      }
+
+      // 2. Create Order Record in Database
+      await OrderService().addOrder(
+        fileNames: _selectedFiles.map((f) => f.name).toList(),
+        fileUrls: fileUrls,
+        copies: _copies,
+        isColor: _isColorPrint,
+        totalAmount: _calculateEstimate(),
+      );
+
+      _showOrderConfirmationDialog();
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  int _calculateEstimate() {
+    int basePrice = _isColorPrint ? 10 : 2;
+    return basePrice * _selectedFiles.length * _copies;
+  }
+}
+```
+Explanation :
+This module handles the core functionality of the student app. Users can select multiple files (PDF, DOCX, Images) from their device. The app calculates an estimated cost based on print preferences (Color/B&W, Copies). When submitted, files are securely uploaded to a specific bucket in Supabase Storage, and the order details are saved to the database.
+
+Output :
+A file selection screen where users can add documents, toggle print settings (e.g., "Color Print", "Double Sided"), see a live price estimate (e.g., "₹20"), and tap "Submit Order".
+
+Module 3 : Orders
+Code :
+```dart
+class OrdersScreen extends StatefulWidget {
+  // ...
+  @override
+  void initState() {
+    super.initState();
+    _initializeOrders();
+    // Listening to real-time status updates
+    _orderService.addListener(() => setState(() {}));
+  }
+
+  Widget _buildOrderCard(PrintOrder order) {
+    return Container(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Dynamic Status Icon & Color
+              Icon(_getStatusIcon(order.status), color: _getStatusColor(order.status)),
+              Text(order.orderNumber, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+              Spacer(),
+              Text(order.status.toUpperCase(), style: TextStyle(color: _getStatusColor(order.status))),
+            ],
+          ),
+          // Progress Tracker (Pending -> Processing -> Ready)
+          if (order.isActive) _buildProgressTracker(order),
+        ],
+      ),
+    );
+  }
+}
+```
+Explanation :
+The Orders screen provides real-time tracking of print jobs. It uses a `TabController` to separate 'Active' orders from 'History'. The UI actively listens to changes in the `OrderService`, ensuring that as soon as an admin updates an order status (e.g., to 'Ready'), the student's app reflects this change instantly without needing to refresh.
+
+Output :
+A list view of orders. Active orders display a visual progress stepper. Completed orders are moved to the history tab. Tapping an order reveals detailed information like the pickup time slot.
+
+Module 4 : Profile Screen
+Code :
+```dart
+class ProfileScreen extends StatefulWidget {
+  // ...
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          // Profile Header with Avatar & Stats
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                CircleAvatar(child: Text(_student?.name[0] ?? 'U')),
+                Text(_student?.name ?? 'Loading...'),
+                // Statistics Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStat('Total Orders', '${allOrders.length}'),
+                    _buildStat('Active', '${activeCount}'),
+                    _buildStat('Spent', '₹${totalSpent}'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Student Details Table
+          SliverToBoxAdapter(
+            child: Container(
+              child: Column(
+                children: [
+                  _buildInfoTile('Roll Number', _student?.rollNumber),
+                  _buildInfoTile('Department', _student?.dept),
+                  _buildInfoTile('Year', _student?.year),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+Explanation :
+The Profile module serves as the personal hub for the student. It fetches and displays the user's academic details (Name, Roll No, Dept) stored in the `students` table. Additionally, it aggregates data from the `orders` table to show usage statistics, such as total money spent and number of print jobs, helping students track their expenses.
+
+Output :
+A profile page showing the user's name and avatar at the top, followed by a summary of their activity (e.g., "Spent: ₹450"). Below that, a card displays their academic information.
+
+Module 5 : Admin Portal
+Code :
+```javascript
+export default function Orders() {
+    // React State for orders
+    const [orders, setOrders] = useState([])
+    
+    // Subscribe to Supabase Realtime Channels
+    useEffect(() => {
+        const channel = supabase
+            .channel('admin-orders')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, 
+                () => fetchOrders() // Refresh list on any change
+            )
+            .subscribe()
+    }, [])
+
+    const updateStatus = async (id, status) => {
+        await supabase.from('orders').update({ status }).eq('id', id)
+    }
+
+    return (
+        <div className="admin-dashboard">
+            <h1>Print Queue</h1>
+            <div className="orders-grid">
+                {orders.map(order => (
+                    <div className="order-card">
+                        <h3>{order.student.name}</h3>
+                         {/* File Download Links */}
+                        <div className="files">
+                            {order.files.map(f => <a href={f.url} download>{f.name}</a>)}
+                        </div>
+                        {/* Status Action Buttons */}
+                        <div className="actions">
+                            <button onClick={() => updateStatus(order.id, 'processing')}>Process</button>
+                            <button onClick={() => updateStatus(order.id, 'ready')}>Mark Ready</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+```
+Explanation :
+The Admin Portal is a web-based dashboard built with React. It provides shop operators with a live view of the print queue. Operators can download the files attached to an order, view student details, and update the status of the job. Access is restricted to authorized credentials. The changes made here trigger notifications/updates on the student's mobile app immediately.
+
+Output :
+A desktop-optimized dashboard table. New orders pop in automatically. Admins can click "Process" to move an order to the active state, or "Mark Ready" to notify the student for pickup.
+
+Conclusion :
+XeroFlow successfully integrates a cross-platform mobile app with a reactive web dashboard, resolving common bridging gaps in campus printing services. The use of real-time database technologies ensures a seamless and efficient experience for both students and administrators, significantly reducing wait times and manual errors.
