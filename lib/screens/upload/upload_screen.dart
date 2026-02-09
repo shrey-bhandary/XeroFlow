@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
@@ -206,12 +207,21 @@ class _UploadScreenState extends State<UploadScreen> {
 
     for (final file in _selectedFiles) {
       try {
-        if (file.path == null) {
-          debugPrint('File path is null for: ${file.name}');
-          continue;
+        Uint8List fileBytes;
+        if (kIsWeb) {
+          if (file.bytes == null) {
+            debugPrint('File bytes are null (Web) for: ${file.name}');
+            continue;
+          }
+          fileBytes = file.bytes!;
+        } else {
+          if (file.path == null) {
+            debugPrint('File path is null for: ${file.name}');
+            continue;
+          }
+          fileBytes = await File(file.path!).readAsBytes();
         }
 
-        final fileBytes = await File(file.path!).readAsBytes();
         final fileName = '${timestamp}_${file.name}'.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
         final filePath = '$userId/$fileName';
 
