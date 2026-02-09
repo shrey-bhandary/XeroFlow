@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../services/order_service.dart';
 
@@ -21,6 +24,72 @@ class _UploadScreenState extends State<UploadScreen> {
   bool _isDoubleSided = false;
   String _paperSize = 'A4';
   String _orientation = 'Portrait';
+
+  // Pickup Slot Selection
+  DateTime? _selectedSlotTime;
+  List<DateTime> _availableSlots = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _generateAvailableSlots();
+  }
+
+  void _generateAvailableSlots() {
+    final slots = <DateTime>[];
+    final now = DateTime.now();
+    
+    // Generate slots for the next 3 days
+    for (int day = 0; day < 3; day++) {
+      final date = now.add(Duration(days: day));
+      
+      // Slots from 9 AM to 5 PM (hourly)
+      for (int hour = 9; hour <= 17; hour++) {
+        final slotTime = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          hour,
+          0,
+        );
+        
+        // Only add future slots
+        if (slotTime.isAfter(now.add(const Duration(hours: 1)))) {
+          slots.add(slotTime);
+        }
+      }
+    }
+    
+    setState(() {
+      _availableSlots = slots;
+      // Default to first available slot
+      if (slots.isNotEmpty) {
+        _selectedSlotTime = slots.first;
+      }
+    });
+  }
+
+  String _formatSlotTime(DateTime slot) {
+    final now = DateTime.now();
+    final isToday = slot.day == now.day && slot.month == now.month && slot.year == now.year;
+    final tomorrow = now.add(const Duration(days: 1));
+    final isTomorrow = slot.day == tomorrow.day && slot.month == tomorrow.month && slot.year == tomorrow.year;
+    
+    String dayLabel;
+    if (isToday) {
+      dayLabel = 'Today';
+    } else if (isTomorrow) {
+      dayLabel = 'Tomorrow';
+    } else {
+      dayLabel = '${slot.day}/${slot.month}';
+    }
+    
+    final hour = slot.hour;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    
+    return '$dayLabel, $displayHour:00 $period';
+  }
 
   Future<void> _pickFiles() async {
     try {
@@ -73,14 +142,23 @@ class _UploadScreenState extends State<UploadScreen> {
     setState(() => _isUploading = true);
 
     try {
+      // Upload files to Supabase Storage and get URLs
+      final fileUrls = await _uploadFilesToStorage();
+      
+      if (fileUrls.isEmpty && _selectedFiles.isNotEmpty) {
+        throw Exception('Failed to upload files');
+      }
+
       // Add the order to the OrderService (now saves to Supabase)
       final order = await OrderService().addOrder(
         fileNames: _selectedFiles.map((f) => f.name).toList(),
+        fileUrls: fileUrls,
         copies: _copies,
         isColor: _isColorPrint,
         isDoubleSided: _isDoubleSided,
         paperSize: _paperSize,
         totalAmount: _calculateEstimate(),
+        slotTime: _selectedSlotTime,
       );
 
       setState(() => _isUploading = false);
@@ -112,6 +190,50 @@ class _UploadScreenState extends State<UploadScreen> {
         );
       }
     }
+  }
+
+  Future<List<String>> _uploadFilesToStorage() async {
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
+    
+    if (userId == null) {
+      debugPrint('No user logged in for file upload');
+      return [];
+    }
+
+    final fileUrls = <String>[];
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    for (final file in _selectedFiles) {
+      try {
+        if (file.path == null) {
+          debugPrint('File path is null for: ${file.name}');
+          continue;
+        }
+
+        final fileBytes = await File(file.path!).readAsBytes();
+        final fileName = '${timestamp}_${file.name}'.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+        final filePath = '$userId/$fileName';
+
+        // Upload to Supabase Storage 'print-files' bucket
+        await supabase.storage
+            .from('print-files')
+            .uploadBinary(filePath, fileBytes);
+
+        // Get public URL
+        final publicUrl = supabase.storage
+            .from('print-files')
+            .getPublicUrl(filePath);
+
+        fileUrls.add(publicUrl);
+        debugPrint('Uploaded: $filePath -> $publicUrl');
+      } catch (e) {
+        debugPrint('Error uploading file ${file.name}: $e');
+        // Continue with other files even if one fails
+      }
+    }
+
+    return fileUrls;
   }
 
   void _showOrderConfirmationDialog(String orderNumber) {
@@ -810,8 +932,86 @@ class _UploadScreenState extends State<UploadScreen> {
               isDark: isDark,
             ),
           ),
+          _buildDivider(isDark),
+          // Pickup Slot
+          _buildSlotSelector(isDark),
         ],
       ),
+    );
+  }
+
+  Widget _buildSlotSelector(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.schedule_rounded, color: AppTheme.primaryBlue, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Text(
+              'Pickup Slot',
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          height: 44,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _availableSlots.length,
+            itemBuilder: (context, index) {
+              final slot = _availableSlots[index];
+              final isSelected = _selectedSlotTime == slot;
+              
+              return GestureDetector(
+                onTap: () {
+                  HapticUtils.selectionClick();
+                  setState(() => _selectedSlotTime = slot);
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? AppTheme.primaryBlue 
+                        : (isDark ? Colors.grey[800] : Colors.grey[100]),
+                    borderRadius: BorderRadius.circular(12),
+                    border: isSelected
+                        ? null
+                        : Border.all(
+                            color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                          ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _formatSlotTime(slot),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected 
+                            ? Colors.white 
+                            : (isDark ? Colors.grey[300] : Colors.grey[700]),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

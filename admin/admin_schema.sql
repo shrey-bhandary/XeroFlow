@@ -26,6 +26,7 @@ CREATE TRIGGER update_admins_updated_at BEFORE UPDATE ON admins
 -- 2. ENHANCE ORDERS TABLE (add print details)
 -- ============================================
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS file_names TEXT[];
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS file_urls TEXT[];
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS copies INTEGER DEFAULT 1;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_color BOOLEAN DEFAULT FALSE;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_double_sided BOOLEAN DEFAULT FALSE;
@@ -71,3 +72,40 @@ ON CONFLICT (email) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_processed_at ON orders(processed_at);
 CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email);
+
+-- ============================================
+-- 6. SETUP STORAGE BUCKET FOR PRINT FILES
+-- ============================================
+-- Run this in Supabase Dashboard -> SQL Editor
+
+-- Create the storage bucket (if it doesn't exist)
+-- You may need to create this manually in Supabase Dashboard -> Storage
+-- Name: print-files
+-- Public: Yes (so files can be downloaded)
+
+-- Storage policies (run after bucket is created)
+-- Allow authenticated users to upload files
+CREATE POLICY "Users can upload print files" ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'print-files' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow authenticated users to read their own files
+CREATE POLICY "Users can read their own files" ON storage.objects
+  FOR SELECT
+  TO authenticated
+  USING (bucket_id = 'print-files' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow admins to read all files (for downloading and printing)
+CREATE POLICY "Admins can read all print files" ON storage.objects
+  FOR SELECT
+  TO authenticated
+  USING (
+    bucket_id = 'print-files' 
+    AND EXISTS (
+      SELECT 1 FROM admins WHERE admins.id = auth.uid()
+    )
+  );
+
+-- Public URL access (set bucket to public for download links to work)
+-- This is configured in Supabase Dashboard -> Storage -> print-files -> Settings

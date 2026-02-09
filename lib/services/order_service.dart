@@ -174,11 +174,13 @@ class OrderService extends ChangeNotifier {
   /// Add a new order from the Upload screen - saves to Supabase
   Future<PrintOrder?> addOrder({
     required List<String> fileNames,
+    List<String>? fileUrls,
     required int copies,
     required bool isColor,
     required bool isDoubleSided,
     required String paperSize,
     required int totalAmount,
+    DateTime? slotTime,
   }) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -192,8 +194,8 @@ class OrderService extends ChangeNotifier {
       final randomPart = (DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0');
       final orderNumber = 'XF-$dateStr-$randomPart';
 
-      // Insert order into Supabase
-      final response = await _supabase.from('orders').insert({
+      // Build the order data
+      final orderData = <String, dynamic>{
         'student_id': userId,
         'order_id': orderNumber,
         'status': 'pending',
@@ -203,7 +205,20 @@ class OrderService extends ChangeNotifier {
         'is_color': isColor,
         'is_double_sided': isDoubleSided,
         'paper_size': paperSize,
-      }).select().single();
+      };
+
+      // Add file_urls if provided
+      if (fileUrls != null && fileUrls.isNotEmpty) {
+        orderData['file_urls'] = fileUrls;
+      }
+
+      // Add slot_time if provided
+      if (slotTime != null) {
+        orderData['slot_time'] = slotTime.toIso8601String();
+      }
+
+      // Insert order into Supabase
+      final response = await _supabase.from('orders').insert(orderData).select().single();
 
       final order = PrintOrder.fromJson(response);
       _orders.insert(0, order);
