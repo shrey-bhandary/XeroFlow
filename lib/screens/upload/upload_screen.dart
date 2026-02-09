@@ -103,7 +103,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
       if (result != null) {
         setState(() {
-          _selectedFiles = result.files;
+          _selectedFiles = [..._selectedFiles, ...result.files];
         });
       }
     } catch (e) {
