@@ -26,6 +26,25 @@ import {
     ExternalLink
 } from 'lucide-react'
 
+
+const downloadFile = async (url, fileName) => {
+    try {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const blobUrl = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
+    } catch (error) {
+        console.error('Download failed:', error)
+        window.open(url, '_blank')
+    }
+}
+
 const FilePreviewModal = ({ file, onClose }) => {
     if (!file) return null
 
@@ -48,9 +67,12 @@ const FilePreviewModal = ({ file, onClose }) => {
                         <div className="preview-unsupported">
                             <FileText size={48} />
                             <p>Preview not available for this file type</p>
-                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                            <button
+                                onClick={() => downloadFile(file.url, file.name)}
+                                className="btn btn-primary"
+                            >
                                 <Download size={16} /> Download to View
-                            </a>
+                            </button>
                         </div>
                     )}
                 </div>
@@ -481,7 +503,8 @@ export default function Orders() {
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 order.file_urls.forEach((url, i) => {
-                                                                    setTimeout(() => window.open(url, '_blank'), i * 300)
+                                                                    const fileName = order.file_names?.[i] || `file-${i + 1}`
+                                                                    setTimeout(() => downloadFile(url, fileName), i * 500)
                                                                 })
                                                             }}
                                                         >
@@ -515,15 +538,15 @@ export default function Orders() {
                                                                                     Preview
                                                                                 </button>
                                                                                 <span className="separator">•</span>
-                                                                                <a
-                                                                                    href={fileUrl}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
+                                                                                <button
                                                                                     className="action-link download-link"
-                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation()
+                                                                                        downloadFile(fileUrl, fileName)
+                                                                                    }}
                                                                                 >
                                                                                     Download
-                                                                                </a>
+                                                                                </button>
                                                                             </>
                                                                         )}
                                                                     </div>
