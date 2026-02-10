@@ -447,33 +447,41 @@ export default function Orders() {
                                             {/* Print Settings */}
                                             <div className="expanded-section">
                                                 <h5>Print Settings</h5>
-                                                <div className="settings-grid">
-                                                    <div className="setting-item">
-                                                        <Copy size={16} />
-                                                        <div>
-                                                            <span className="setting-value">{order.copies || 1}</span>
-                                                            <span className="setting-label">Copies</span>
+                                                <div className="settings-list">
+                                                    <div className="setting-row">
+                                                        <div className="setting-icon-wrapper" style={{ color: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.08)' }}>
+                                                            <Copy size={20} />
+                                                        </div>
+                                                        <div className="setting-info">
+                                                            <div className="setting-value">{order.copies || 1} Copies</div>
+                                                            <div className="setting-label">Number of copies</div>
                                                         </div>
                                                     </div>
-                                                    <div className="setting-item">
-                                                        <Palette size={16} />
-                                                        <div>
-                                                            <span className="setting-value">{order.is_color ? 'Color' : 'B&W'}</span>
-                                                            <span className="setting-label">Print Mode</span>
+                                                    <div className="setting-row">
+                                                        <div className="setting-icon-wrapper" style={{ color: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.08)' }}>
+                                                            <Palette size={20} />
+                                                        </div>
+                                                        <div className="setting-info">
+                                                            <div className="setting-value">{order.is_color ? 'Color' : 'Black & White'}</div>
+                                                            <div className="setting-label">Print mode</div>
                                                         </div>
                                                     </div>
-                                                    <div className="setting-item">
-                                                        <BookOpen size={16} />
-                                                        <div>
-                                                            <span className="setting-value">{order.is_double_sided ? '2-Sided' : '1-Sided'}</span>
-                                                            <span className="setting-label">Layout</span>
+                                                    <div className="setting-row">
+                                                        <div className="setting-icon-wrapper" style={{ color: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.08)' }}>
+                                                            <BookOpen size={20} />
+                                                        </div>
+                                                        <div className="setting-info">
+                                                            <div className="setting-value">{order.is_double_sided ? 'Double Sided' : 'Single Sided'}</div>
+                                                            <div className="setting-label">Page layout</div>
                                                         </div>
                                                     </div>
-                                                    <div className="setting-item">
-                                                        <File size={16} />
-                                                        <div>
-                                                            <span className="setting-value">{order.paper_size || 'A4'}</span>
-                                                            <span className="setting-label">Size</span>
+                                                    <div className="setting-row">
+                                                        <div className="setting-icon-wrapper" style={{ color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.08)' }}>
+                                                            <File size={20} />
+                                                        </div>
+                                                        <div className="setting-info">
+                                                            <div className="setting-value">{order.paper_size || 'A4'}</div>
+                                                            <div className="setting-label">Paper size</div>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -1247,20 +1247,6 @@ tr:hover td {
   margin-top: 2px;
 }
 
-/* Settings Grid */
-.settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.settings-grid span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
 
 /* Pickup Badge */
 .pickup-badge {
@@ -1807,6 +1793,7 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 }
+
 /* --- New Styles for Orders Expansion & Preview --- */
 
 /* Modal */
@@ -1995,38 +1982,57 @@ tr:hover td {
   opacity: 0.9;
 }
 
-/* Expanded Print Settings */
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+/* Expanded Print Settings - List Layout */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.setting-item {
+.setting-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px;
-  background: var(--bg-primary);
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
+  transition: all 0.2s ease;
 }
 
-.setting-item svg {
-  color: var(--text-muted);
+.setting-row:hover {
+  border-color: var(--primary-blue);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.setting-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.setting-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .setting-value {
   display: block;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary);
+  margin-bottom: 2px;
 }
 
 .setting-label {
   display: block;
   font-size: 11px;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 /* Files Grid */
@@ -2039,7 +2045,7 @@ tr:hover td {
 
 .file-card {
   display: flex;
-  align-items:center;
+  align-items: center;
   gap: 12px;
   padding: 12px;
   background: var(--bg-secondary);
@@ -2143,7 +2149,8 @@ tr:hover td {
 
 /* Tighter spacing for Student Section */
 .student-section-container h5 {
-  margin-bottom: 6px; /* Reduced from default 10px */
+  margin-bottom: 6px;
+  /* Reduced from default 10px */
 }
 
 /* Ensure consistent height inside expanded grid */
@@ -2153,14 +2160,17 @@ tr:hover td {
 }
 
 .student-detail-card {
-  flex: 1; /* Maximizes height to fill the container */
-  margin-top: 2px; /* Slight push if needed, but flex takes care of it usually */
+  flex: 1;
+  /* Maximizes height to fill the container */
+  margin-top: 2px;
+  /* Slight push if needed, but flex takes care of it usually */
   /* Remove unneeded padding if parent handles it */
 }
 
 /* Adjust Files Section similarly if needed */
 .files-section-lg {
-  margin-top: 4px; /* Align if needed */
+  margin-top: 4px;
+  /* Align if needed */
 }
 
 /* --- Toolbar and Actions Realignment --- */
